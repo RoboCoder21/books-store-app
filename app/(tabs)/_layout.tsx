@@ -1,11 +1,11 @@
-import React from 'react';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { Link, Tabs } from 'expo-router';
+import React from 'react';
 import { Pressable } from 'react-native';
 
-import Colors from '@/constants/Colors';
-import { useColorScheme } from '@/components/useColorScheme';
 import { useClientOnlyValue } from '@/components/useClientOnlyValue';
+import { useColorScheme } from '@/components/useColorScheme';
+import Colors from '@/constants/Colors';
 
 // You can explore the built-in icon families and icons on the web at https://icons.expo.fyi/
 function TabBarIcon(props: {
@@ -29,8 +29,9 @@ export default function TabLayout() {
       <Tabs.Screen
         name="index"
         options={{
-          title: 'Tab One',
-          tabBarIcon: ({ color }) => <TabBarIcon name="code" color={color} />,
+          title: 'Home',
+          tabBarIcon: ({ color }) => <TabBarIcon name="home" color={color} />,
+          headerTitle: 'Discover',
           headerRight: () => (
             <Link href="/modal" asChild>
               <Pressable>
@@ -38,7 +39,7 @@ export default function TabLayout() {
                   <FontAwesome
                     name="info-circle"
                     size={25}
-                    color={Colors[colorScheme ?? 'light'].text}
+                    color={Colors[colorScheme ?? 'light'].tint}
                     style={{ marginRight: 15, opacity: pressed ? 0.5 : 1 }}
                   />
                 )}
@@ -48,10 +49,35 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
+        name="books"
+        options={{
+          title: 'Books',
+          tabBarIcon: ({ color }) => <TabBarIcon name="th-large" color={color} />,
+          headerTitle: 'Browse categories',
+        }}
+      />
+      <Tabs.Screen
+        name="audio"
+        options={{
+          title: 'Audio',
+          tabBarIcon: ({ color }) => <TabBarIcon name="headphones" color={color} />,
+          headerTitle: 'Audio books',
+        }}
+      />
+      <Tabs.Screen
         name="two"
         options={{
-          title: 'Tab Two',
-          tabBarIcon: ({ color }) => <TabBarIcon name="code" color={color} />,
+          title: 'Add Book',
+          tabBarIcon: ({ color }) => <TabBarIcon name="plus-square" color={color} />,
+          headerTitle: 'Add your book',
+        }}
+      />
+      <Tabs.Screen
+        name="downloads"
+        options={{
+          title: 'Downloads',
+          tabBarIcon: ({ color }) => <TabBarIcon name="download" color={color} />,
+          headerTitle: 'Your library',
         }}
       />
     </Tabs>

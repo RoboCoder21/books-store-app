@@ -34,6 +34,10 @@
     ],
     "experiments": {
       "typedRoutes": true
+    },
+    "extra": {
+      "EXPO_PUBLIC_SUPABASE_URL": "https://niamuhjwljmofdlqxoyp.supabase.co",
+      "EXPO_PUBLIC_SUPABASE_ANON_KEY": "sb_publishable_-kVLFZVfVe3bGJXVs69NQw_To3Y0rAE"
     }
   }
 }
