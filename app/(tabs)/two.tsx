@@ -1,6 +1,7 @@
+import Constants from 'expo-constants';
 import * as DocumentPicker from 'expo-document-picker';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { FlatList, Pressable, ScrollView, StyleSheet, TextInput, View } from 'react-native';
+import { Alert, FlatList, Pressable, ScrollView, StyleSheet, TextInput, View } from 'react-native';
 
 import { BookCard } from '@/components/BookCard';
 import { SectionHeading } from '@/components/SectionHeading';
@@ -8,7 +9,7 @@ import { Text } from '@/components/Themed';
 import { useColorScheme } from '@/components/useColorScheme';
 import Colors from '@/constants/Colors';
 import { Book, catalog } from '@/constants/books';
-import { addBook, fetchBooks, uploadBookFile } from '@/lib/bookService';
+import { addBook, deleteBook, fetchBooks, uploadBookFile } from '@/lib/bookService';
 
 export default function ListsScreen() {
   const colorScheme = useColorScheme();
@@ -16,6 +17,9 @@ export default function ListsScreen() {
   const cardSurface = colorScheme === 'dark' ? 'rgba(255,255,255,0.04)' : '#ffffff';
   const cardBorder = colorScheme === 'dark' ? 'rgba(255,255,255,0.08)' : '#e2e8f0';
   const progressTrack = colorScheme === 'dark' ? 'rgba(255,255,255,0.08)' : 'rgba(15,23,42,0.08)';
+  const isAdmin =
+    process.env.EXPO_PUBLIC_ADMIN_MODE === 'true' ||
+    ((Constants?.expoConfig?.extra as Record<string, any> | undefined)?.EXPO_PUBLIC_ADMIN_MODE === 'true');
   const [books, setBooks] = useState<Book[]>(catalog);
 
   const readingList = useMemo(
@@ -116,6 +120,17 @@ export default function ListsScreen() {
     }
   };
 
+  const handleDelete = async (id: string) => {
+    if (!isAdmin) return;
+    try {
+      await deleteBook(id);
+      await refreshFromRemote();
+    } catch (error) {
+      console.warn('Unable to delete book', error);
+      Alert.alert('Delete failed', 'You might not have permission. Ensure admin mode and Supabase delete policy are enabled.');
+    }
+  };
+
   return (
     <ScrollView
       contentContainerStyle={[styles.container, { backgroundColor: theme.background }]}
@@ -179,6 +194,11 @@ export default function ListsScreen() {
               </View>
               <Text style={styles.progressPercent}>{Math.round((item.progress ?? 0) * 100)}%</Text>
             </View>
+            {isAdmin && (
+              <Pressable style={[styles.removeButton, { borderColor: cardBorder }]} onPress={() => handleDelete(item.id)}>
+                <Text style={styles.removeText}>Remove</Text>
+              </Pressable>
+            )}
           </View>
         )}
         ItemSeparatorComponent={() => <View style={{ height: 12 }} />}
@@ -192,6 +212,11 @@ export default function ListsScreen() {
         renderItem={({ item }) => (
           <View style={[styles.listCard, { backgroundColor: cardSurface, borderColor: cardBorder }]}>
             <BookCard book={item} />
+            {isAdmin && (
+              <Pressable style={[styles.removeButton, { borderColor: cardBorder }]} onPress={() => handleDelete(item.id)}>
+                <Text style={styles.removeText}>Remove</Text>
+              </Pressable>
+            )}
           </View>
         )}
         ItemSeparatorComponent={() => <View style={{ height: 12 }} />}
@@ -258,6 +283,18 @@ const styles = StyleSheet.create({
   addButtonText: {
     fontWeight: '700',
     color: '#0f172a',
+  },
+  removeButton: {
+    marginTop: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 10,
+    borderWidth: StyleSheet.hairlineWidth,
+    backgroundColor: '#fff1f2',
+  },
+  removeText: {
+    fontWeight: '800',
+    color: '#b91c1c',
   },
   formCard: {
     padding: 12,

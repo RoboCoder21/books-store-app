@@ -22,7 +22,8 @@
         "backgroundColor": "#ffffff"
       },
       "edgeToEdgeEnabled": true,
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "package": "com.robocoder21.booksstoreapp"
     },
     "web": {
       "bundler": "metro",
@@ -37,7 +38,12 @@
     },
     "extra": {
       "EXPO_PUBLIC_SUPABASE_URL": "https://niamuhjwljmofdlqxoyp.supabase.co",
-      "EXPO_PUBLIC_SUPABASE_ANON_KEY": "sb_publishable_-kVLFZVfVe3bGJXVs69NQw_To3Y0rAE"
+      "EXPO_PUBLIC_SUPABASE_ANON_KEY": "sb_publishable_-kVLFZVfVe3bGJXVs69NQw_To3Y0rAE",
+      "EXPO_PUBLIC_ADMIN_MODE": "true",
+      "router": {},
+      "eas": {
+        "projectId": "b08e489c-5505-4e35-8f0d-9c1d381d74cc"
+      }
     }
   }
 }

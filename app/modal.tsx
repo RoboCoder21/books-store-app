@@ -47,7 +47,7 @@ export default function ModalScreen() {
 
   return (
     <View style={[styles.container, { backgroundColor: theme.background }]}>
-      <StatusBar style={Platform.OS === 'ios' ? 'light' : 'auto'} />
+      <StatusBar style={Platform.OS === 'android' ? 'light' : 'auto'} />
       <ImageBackground
         source={{ uri: 'https://images.unsplash.com/photo-1512820790803-83ca734da794?auto=format&fit=crop&w=900&q=80' }}
         style={styles.backdrop}

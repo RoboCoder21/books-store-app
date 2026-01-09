@@ -121,6 +121,19 @@ export async function addBook(input: NewBookInput) {
   return { data: mapRow(data), source: 'remote' as const };
 }
 
+export async function deleteBook(id: string) {
+  const client = getClient();
+  if (!client) {
+    const index = memoryStore.findIndex((b) => b.id === id);
+    if (index >= 0) memoryStore.splice(index, 1);
+    return { source: 'local' as const };
+  }
+
+  const { error } = await client.from(table).delete().eq('id', id);
+  if (error) throw new Error(error.message);
+  return { source: 'remote' as const };
+}
+
 export async function uploadBookFile(fileUri: string, fileName: string) {
   const client = getClient();
   if (!client) throw new Error('Supabase is not configured.');
