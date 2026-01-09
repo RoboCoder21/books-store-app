@@ -10,9 +10,10 @@ import { useColorScheme } from './useColorScheme';
 export type BookCardProps = {
   book: Book;
   onPress?: (book: Book) => void;
+  hideDownloadBadge?: boolean;
 };
 
-export function BookCard({ book, onPress }: BookCardProps) {
+export function BookCard({ book, onPress, hideDownloadBadge }: BookCardProps) {
   const colorScheme = useColorScheme();
   const theme = Colors[colorScheme ?? 'light'];
   const muted = colorScheme === 'dark' ? 'rgba(226,232,240,0.7)' : 'rgba(15,23,42,0.6)';
@@ -56,10 +57,12 @@ export function BookCard({ book, onPress }: BookCardProps) {
       <View style={styles.meta}>
         <View style={styles.headerRow}>
           <Text style={[styles.category, { color: categoryColor }]}>{book.category}</Text>
-          <View style={[styles.downloadPill, { borderColor: book.accent }]}> 
-            <FontAwesome name="download" size={12} color={book.accent} />
-            <Text style={[styles.fileText, { color: book.accent }]}>{fileLabel}</Text>
-          </View>
+          {!hideDownloadBadge && (
+            <View style={[styles.downloadPill, { borderColor: book.accent }]}> 
+              <FontAwesome name="download" size={12} color={book.accent} />
+              <Text style={[styles.fileText, { color: book.accent }]}>{fileLabel}</Text>
+            </View>
+          )}
         </View>
         <Text style={styles.title} numberOfLines={2}>
           {book.title}
@@ -112,6 +115,7 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     shadowOffset: { width: 0, height: 4 },
     elevation: 3,
+    width: '100%',
   },
   cover: {
     width: 72,
@@ -133,14 +137,15 @@ const styles = StyleSheet.create({
   downloadPill: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: 999,
+    gap: 4,
+    paddingHorizontal: 4,
+    paddingVertical: 5,
+    borderRadius: 10,
     borderWidth: StyleSheet.hairlineWidth,
   },
   fileText: {
     fontWeight: '700',
+    fontSize: 12,
   },
   row: {
     flexDirection: 'row',
@@ -174,14 +179,17 @@ const styles = StyleSheet.create({
   footerRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
+    justifyContent: 'flex-start',
+    flexWrap: 'wrap',
+    gap: 8,
     marginTop: 10,
   },
   tag: {
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: 999,
+    paddingHorizontal: 8,
+    paddingVertical: 5,
+    borderRadius: 10,
     borderWidth: StyleSheet.hairlineWidth,
+    flexShrink: 0,
   },
   tagText: {
     fontWeight: '700',
@@ -189,25 +197,29 @@ const styles = StyleSheet.create({
   cta: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    borderRadius: 10,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 8,
+    flexShrink: 0,
   },
   ctaText: {
     color: '#ffffff',
     fontWeight: '800',
+    fontSize: 12,
   },
   ctaGhost: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 10,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 8,
     borderWidth: StyleSheet.hairlineWidth,
-    marginLeft: 8,
+    marginLeft: 0,
     backgroundColor: '#ffffff',
+    flexShrink: 0,
   },
   ctaGhostText: {
     fontWeight: '800',
+    fontSize: 12,
   },
 });

@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { FlatList, Pressable, StyleSheet, View } from 'react-native';
+import { FlatList, Pressable, StyleSheet, View, useWindowDimensions } from 'react-native';
 
 import { BookCard } from '@/components/BookCard';
 import { SectionHeading } from '@/components/SectionHeading';
@@ -21,6 +21,9 @@ export default function DownloadsScreen() {
   const colorScheme = useColorScheme();
   const theme = Colors[colorScheme ?? 'light'];
   const [items, setItems] = useState<DownloadItem[]>([]);
+  const { width } = useWindowDimensions();
+  const isTablet = width >= 768;
+  const isWide = width >= 1024;
 
   useEffect(() => {
     fetchBooks()
@@ -63,11 +66,24 @@ export default function DownloadsScreen() {
 
   return (
     <FlatList
-      contentContainerStyle={[styles.container, { backgroundColor: theme.background }]}
+      contentContainerStyle={[
+        styles.container,
+        {
+          backgroundColor: theme.background,
+          paddingHorizontal: isWide ? 28 : 20,
+          maxWidth: 1200,
+          alignSelf: 'center',
+          width: '100%',
+        },
+      ]}
       data={items}
       keyExtractor={(item) => item.id}
-      renderItem={renderDownload}
+      renderItem={({ item }) => (
+        <View style={[styles.downloadItem, isTablet && styles.downloadItemTablet]}>{renderDownload({ item })}</View>
+      )}
       ItemSeparatorComponent={() => <View style={{ height: 14 }} />}
+      numColumns={isTablet ? 2 : 1}
+      columnWrapperStyle={isTablet ? styles.gridColumns : undefined}
       ListHeaderComponent={
         <View style={styles.header}> 
           <Text style={styles.eyebrow}>Downloads</Text>
@@ -84,7 +100,7 @@ export default function DownloadsScreen() {
 
 const styles = StyleSheet.create({
   container: {
-    padding: 20,
+    paddingVertical: 20,
   },
   header: {
     marginBottom: 12,
@@ -137,5 +153,16 @@ const styles = StyleSheet.create({
   },
   readText: {
     fontWeight: '800',
+  },
+  downloadItem: {
+    flex: 1,
+  },
+  downloadItemTablet: {
+    maxWidth: '48%',
+  },
+  gridColumns: {
+    justifyContent: 'space-between',
+    columnGap: 12,
+    rowGap: 12,
   },
 });

@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { FlatList, Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { FlatList, Pressable, ScrollView, StyleSheet, View, useWindowDimensions } from 'react-native';
 
 import { BookCard } from '@/components/BookCard';
 import { SectionHeading } from '@/components/SectionHeading';
@@ -22,6 +22,9 @@ export default function BooksScreen() {
   const [books, setBooks] = useState<Book[]>(catalog);
   const [pillar, setPillar] = useState<Pillar>('Fiction');
   const [genre, setGenre] = useState<string>('All');
+  const { width } = useWindowDimensions();
+  const isTablet = width >= 768;
+  const isWide = width >= 1024;
 
   useEffect(() => {
     fetchBooks()
@@ -52,7 +55,16 @@ export default function BooksScreen() {
 
   return (
     <ScrollView
-      contentContainerStyle={[styles.container, { backgroundColor: theme.background }]}
+      contentContainerStyle={[
+        styles.container,
+        {
+          backgroundColor: theme.background,
+          paddingHorizontal: isWide ? 28 : 20,
+          maxWidth: 1200,
+          alignSelf: 'center',
+          width: '100%',
+        },
+      ]}
       showsVerticalScrollIndicator={false}>
       <View style={styles.header}>
         <Text style={styles.eyebrow}>Books</Text>
@@ -92,8 +104,14 @@ export default function BooksScreen() {
       <FlatList
         data={filtered}
         keyExtractor={(item) => item.id}
-        renderItem={({ item }) => <BookCard book={item} />}
+        renderItem={({ item }) => (
+          <View style={[styles.bookItem, isTablet && styles.bookItemTablet]}>
+            <BookCard book={item} />
+          </View>
+        )}
         ItemSeparatorComponent={() => <View style={{ height: 12 }} />}
+        numColumns={isTablet ? 2 : 1}
+        columnWrapperStyle={isTablet ? styles.gridColumns : undefined}
         scrollEnabled={false}
         contentContainerStyle={{ paddingBottom: 24 }}
       />
@@ -103,7 +121,7 @@ export default function BooksScreen() {
 
 const styles = StyleSheet.create({
   container: {
-    padding: 20,
+    paddingVertical: 20,
   },
   header: {
     marginBottom: 16,
@@ -149,5 +167,16 @@ const styles = StyleSheet.create({
   },
   genreText: {
     fontWeight: '700',
+  },
+  bookItem: {
+    flex: 1,
+  },
+  bookItemTablet: {
+    maxWidth: '48%',
+  },
+  gridColumns: {
+    justifyContent: 'space-between',
+    columnGap: 12,
+    rowGap: 12,
   },
 });

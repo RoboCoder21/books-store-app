@@ -11,6 +11,7 @@ import {
   StyleSheet,
   TextInput,
   View,
+  useWindowDimensions,
 } from 'react-native';
 
 import { AudioMiniPlayer } from '@/components/AudioMiniPlayer';
@@ -39,6 +40,9 @@ export default function BrowseScreen() {
   const inputBackground = colorScheme === 'dark' ? '#0b1020' : '#ffffff';
   const inputBorder = colorScheme === 'dark' ? '#1f2937' : '#e2e8f0';
   const placeholder = colorScheme === 'dark' ? 'rgba(226,232,240,0.6)' : 'rgba(15,23,42,0.5)';
+  const { width } = useWindowDimensions();
+  const isTablet = width >= 768;
+  const isWide = width >= 1024;
 
   const heroBook = useMemo(() => books.find((b) => b.featured) ?? books[0], [books]);
   const filtered = useMemo(() => {
@@ -79,7 +83,11 @@ export default function BrowseScreen() {
     loadBooks();
   }, [loadBooks]);
 
-  const renderBook = ({ item }: { item: Book }) => <BookCard book={item} />;
+  const renderBook = ({ item }: { item: Book }) => (
+    <View style={[styles.bookItem, isTablet && styles.bookItemTablet]}>
+      <BookCard book={item} />
+    </View>
+  );
   const topAudio = heroBook?.audioPreview
     ? {
         title: heroBook.title,
@@ -92,7 +100,16 @@ export default function BrowseScreen() {
 
   return (
     <ScrollView
-      contentContainerStyle={[styles.scroll, { backgroundColor: theme.background }]}
+      contentContainerStyle={[
+        styles.scroll,
+        {
+          backgroundColor: theme.background,
+          paddingHorizontal: isWide ? 28 : 20,
+          maxWidth: 1200,
+          alignSelf: 'center',
+          width: '100%',
+        },
+      ]}
       refreshControl={<RefreshControl refreshing={refreshing} onRefresh={loadBooks} tintColor={theme.tint} />}
       showsVerticalScrollIndicator={false}>
       <View style={styles.topBar}>
@@ -127,8 +144,8 @@ export default function BrowseScreen() {
         <FontAwesome name="sliders" size={16} color={placeholder} />
       </View>
 
-      <View style={styles.heroContainer}>
-        <View style={styles.heroContent}>
+      <View style={[styles.heroContainer, isTablet && styles.heroRow]}>
+        <View style={[styles.heroContent, isTablet && { flex: 1 }]}> 
           <Text style={styles.eyebrow}>Daily reading</Text>
           <Text style={styles.headline}>A quick bookstore with audiobooks.</Text>
           <Text style={styles.subhead}>New releases and curated shelves every week.</Text>
@@ -187,7 +204,7 @@ export default function BrowseScreen() {
           horizontal
           renderItem={({ item }) => (
             <View style={{ width: 220 }}>
-              <BookCard book={item} />
+              <BookCard book={item} hideDownloadBadge />
             </View>
           )}
           ItemSeparatorComponent={() => <View style={{ width: 12 }} />}
@@ -218,6 +235,8 @@ export default function BrowseScreen() {
           data={filtered}
           keyExtractor={(item) => item.id}
           scrollEnabled={false}
+          numColumns={isTablet ? 2 : 1}
+          columnWrapperStyle={isTablet ? styles.gridColumns : undefined}
           renderItem={renderBook}
           ItemSeparatorComponent={() => <View style={{ height: 12 }} />}
         />
@@ -230,7 +249,7 @@ export default function BrowseScreen() {
 
 const styles = StyleSheet.create({
   scroll: {
-    padding: 20,
+    paddingVertical: 20,
     backgroundColor: Colors.light.background,
   },
   topBar: {
@@ -274,6 +293,11 @@ const styles = StyleSheet.create({
     backgroundColor: '#facc15',
     borderRadius: 18,
     padding: 16,
+  },
+  heroRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 18,
   },
   heroContent: {
     marginTop: 4,
@@ -323,6 +347,17 @@ const styles = StyleSheet.create({
   },
   section: {
     marginTop: 18,
+  },
+  gridColumns: {
+    justifyContent: 'space-between',
+    columnGap: 12,
+    rowGap: 12,
+  },
+  bookItem: {
+    flex: 1,
+  },
+  bookItemTablet: {
+    maxWidth: '48%',
   },
   featuredCard: {
     width: 160,
