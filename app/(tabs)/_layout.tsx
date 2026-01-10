@@ -1,4 +1,5 @@
 import FontAwesome from '@expo/vector-icons/FontAwesome';
+import Constants from 'expo-constants';
 import { Link, Tabs } from 'expo-router';
 import React from 'react';
 import { Pressable } from 'react-native';
@@ -17,6 +18,9 @@ function TabBarIcon(props: {
 
 export default function TabLayout() {
   const colorScheme = useColorScheme();
+  const isAdmin =
+    process.env.EXPO_PUBLIC_ADMIN_MODE === 'true' ||
+    ((Constants?.expoConfig?.extra as Record<string, any> | undefined)?.EXPO_PUBLIC_ADMIN_MODE === 'true');
 
   return (
     <Tabs
@@ -66,10 +70,12 @@ export default function TabLayout() {
       />
       <Tabs.Screen
         name="two"
+        href={isAdmin ? undefined : null}
         options={{
           title: 'Add Book',
           tabBarIcon: ({ color }) => <TabBarIcon name="plus-square" color={color} />,
           headerTitle: 'Add your book',
+          tabBarButton: isAdmin ? undefined : () => null,
         }}
       />
       <Tabs.Screen
