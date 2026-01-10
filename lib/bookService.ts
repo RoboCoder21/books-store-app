@@ -36,6 +36,7 @@ type BookRow = {
   id: string;
   title: string;
   author: string;
+  authorImage?: string | null;
   price: number;
   rating: number;
   pages: number;
@@ -53,6 +54,7 @@ export type NewBookInput = {
   id?: string;
   title: string;
   author: string;
+  authorImage?: string;
   price: number;
   rating: number;
   pages: number;
@@ -70,6 +72,7 @@ function mapRow(row: BookRow): Book {
     id: row.id,
     title: row.title,
     author: row.author,
+    authorImage: row.authorImage ?? undefined,
     price: row.price,
     rating: row.rating,
     pages: row.pages,
@@ -92,7 +95,7 @@ export async function fetchBooks() {
 
   const { data, error } = await client
     .from(table)
-    .select('id,title,author,price,rating,pages,category,accent,featured,description,cover,audioPreview,fileUrl,progress')
+    .select('id,title,author,authorImage,price,rating,pages,category,accent,featured,description,cover,audioPreview,fileUrl,progress')
     .order('title', { ascending: true });
 
   if (error || !data) {

@@ -4,6 +4,7 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   Alert,
   FlatList,
+  Image,
   ImageBackground,
   Pressable,
   RefreshControl,
@@ -30,6 +31,11 @@ const sampleTrack = {
   audioUrl: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3',
 };
 
+type AuthorChip = {
+  name: string;
+  image?: string;
+};
+
 export default function BrowseScreen() {
   const [query, setQuery] = useState('');
   const [books, setBooks] = useState<Book[]>(catalog);
@@ -54,16 +60,15 @@ export default function BrowseScreen() {
   }, [books, query]);
   const newArrivals = useMemo(() => books.slice(0, 6), [books]);
   const trending = useMemo(() => [...books].sort((a, b) => b.rating - a.rating).slice(0, 6), [books]);
-  const popularAuthors = useMemo(() => {
+  const popularAuthors = useMemo<AuthorChip[]>(() => {
     const seen = new Set<string>();
-    return books
-      .map((b) => b.author)
-      .filter((author) => {
-        if (seen.has(author)) return false;
-        seen.add(author);
-        return true;
-      })
-      .slice(0, 8);
+    const unique: AuthorChip[] = [];
+    books.forEach((book) => {
+      if (seen.has(book.author)) return;
+      seen.add(book.author);
+      unique.push({ name: book.author, image: book.authorImage });
+    });
+    return unique.slice(0, 8);
   }, [books]);
 
   const loadBooks = useCallback(async () => {
@@ -114,8 +119,14 @@ export default function BrowseScreen() {
       showsVerticalScrollIndicator={false}>
       <View style={styles.topBar}>
         <View>
-          <Text style={styles.brand}>My Bookstore</Text>
-          <Text style={styles.brandSub}>Discover, listen, enjoy.</Text>
+          <Text style={[styles.brand, { color: theme.text }]}>My Bookstore</Text>
+          <Text
+            style={[
+              styles.brandSub,
+              { color: colorScheme === 'dark' ? 'rgba(226,232,240,0.7)' : 'rgba(15,23,42,0.6)' },
+            ]}>
+            Discover, listen, enjoy.
+          </Text>
         </View>
         <Pressable
           style={[styles.iconButton, { borderColor: inputBorder }]}
@@ -217,11 +228,21 @@ export default function BrowseScreen() {
         <FlatList
           data={popularAuthors}
           horizontal
-          keyExtractor={(item) => item}
+          keyExtractor={(item) => item.name}
           renderItem={({ item }) => (
-            <View style={[styles.authorChip, { borderColor: inputBorder }]}>
-              <View style={[styles.avatar, { backgroundColor: theme.tint }]} />
-              <Text style={styles.authorName}>{item}</Text>
+            <View
+              style={[
+                styles.authorChip,
+                { borderColor: inputBorder, backgroundColor: colorScheme === 'dark' ? '#111827' : '#ffffff' },
+              ]}>
+              <View style={[styles.avatar, { backgroundColor: theme.tint }]}>
+                {item.image ? (
+                  <Image source={{ uri: item.image }} style={styles.authorImage} />
+                ) : (
+                  <Text style={[styles.avatarInitial, { color: theme.text }]}>{item.name.charAt(0).toUpperCase()}</Text>
+                )}
+              </View>
+              <Text style={[styles.authorName, { color: theme.text }]}>{item.name}</Text>
             </View>
           )}
           ItemSeparatorComponent={() => <View style={{ width: 10 }} />}
@@ -261,10 +282,10 @@ const styles = StyleSheet.create({
   brand: {
     fontSize: 22,
     fontWeight: '800',
-    color: '#0f172a',
+    color: '#ffffff',
   },
   brandSub: {
-    color: 'rgba(15,23,42,0.6)',
+    color: 'rgba(255,255,255,0.6)',
   },
   iconButton: {
     width: 40,
@@ -334,6 +355,19 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: '#facc15',
     position: 'relative',
+    alignItems: 'center',
+    justifyContent: 'center',
+    overflow: 'hidden',
+  },
+  authorImage: {
+    width: '100%',
+    height: '100%',
+    borderRadius: 18,
+  },
+  avatarInitial: {
+    color: '#0f172a',
+    fontWeight: '800',
+    fontSize: 14,
   },
   heroCta: {
     backgroundColor: '#111827',

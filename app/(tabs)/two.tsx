@@ -35,6 +35,7 @@ export default function ListsScreen() {
   const [newTitle, setNewTitle] = useState('');
   const [newAuthor, setNewAuthor] = useState('');
   const [newCategory, setNewCategory] = useState('Custom');
+  const [newAuthorImage, setNewAuthorImage] = useState('');
   const [saving, setSaving] = useState(false);
   const [pickedFile, setPickedFile] = useState<DocumentPicker.DocumentPickerAsset | null>(null);
 
@@ -65,6 +66,8 @@ export default function ListsScreen() {
       await addBook({
         title: 'New Arrival',
         author: 'You',
+        authorImage:
+          'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=200&q=80',
         price: 12.0,
         rating: 4.5,
         pages: 220,
@@ -92,6 +95,7 @@ export default function ListsScreen() {
       await addBook({
         title: newTitle.trim(),
         author: newAuthor.trim(),
+        authorImage: newAuthorImage.trim() || undefined,
         price: 0,
         rating: 4.5,
         pages: 240,
@@ -104,6 +108,7 @@ export default function ListsScreen() {
       await refreshFromRemote();
       setNewTitle('');
       setNewAuthor('');
+      setNewAuthorImage('');
       setNewCategory('Custom');
       setPickedFile(null);
     } catch (error) {
@@ -163,6 +168,13 @@ export default function ListsScreen() {
           placeholderTextColor="rgba(15,23,42,0.5)"
           value={newAuthor}
           onChangeText={setNewAuthor}
+        />
+        <TextInput
+          style={[styles.input, { borderColor: cardBorder }]}
+          placeholder="Author image URL (optional)"
+          placeholderTextColor="rgba(15,23,42,0.5)"
+          value={newAuthorImage}
+          onChangeText={setNewAuthorImage}
         />
         <TextInput
           style={[styles.input, { borderColor: cardBorder }]}
