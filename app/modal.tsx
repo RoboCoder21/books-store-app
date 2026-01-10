@@ -37,8 +37,7 @@ export default function ModalScreen() {
       } else if (user) {
         setMessage(mode === 'login' ? 'Welcome back! You are logged in.' : 'Account created. Redirecting…');
         router.replace('/');
-      } else {
-        setError('Something went wrong.');
+      } else {        setError('Something went wrong.');
       }
     } finally {
       setLoading(false);
