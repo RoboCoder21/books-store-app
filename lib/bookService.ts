@@ -21,6 +21,13 @@ const table = 'books';
 
 let cachedClient: SupabaseClient | null = null;
 const memoryStore: Book[] = [...catalog];
+let supabaseUnavailable = false;
+
+function supabaseReady() {
+  if (supabaseUnavailable) return false;
+  if (typeof navigator !== 'undefined' && navigator.onLine === false) return false;
+  return !!getClient();
+}
 
 function getClient() {
   if (!supabaseUrl || !supabaseKey) return null;
@@ -89,66 +96,93 @@ function mapRow(row: BookRow): Book {
 
 export async function fetchBooks() {
   const client = getClient();
-  if (!client) {
+  if (!client || !supabaseReady()) {
     return { data: memoryStore, source: 'local' as const };
   }
 
-  const { data, error } = await client
-    .from(table)
-    .select('id,title,author,authorImage,price,rating,pages,category,accent,featured,description,cover,audioPreview,fileUrl,progress')
-    .order('title', { ascending: true });
+  try {
+    const { data, error } = await client
+      .from(table)
+      .select('id,title,author,authorImage,price,rating,pages,category,accent,featured,description,cover,audioPreview,fileUrl,progress')
+      .order('title', { ascending: true });
 
-  if (error || !data) {
-    console.warn('Falling back to local catalog because Supabase failed', error?.message);
+    if (error || !data) {
+      console.warn('Falling back to local catalog because Supabase failed', error?.message);
+      return { data: memoryStore, source: 'local' as const };
+    }
+
+    return { data: data.map(mapRow), source: 'remote' as const };
+  } catch (error: unknown) {
+    supabaseUnavailable = true;
+    console.warn('Falling back to local catalog because Supabase is unreachable', (error as Error)?.message);
     return { data: memoryStore, source: 'local' as const };
   }
-
-  return { data: data.map(mapRow), source: 'remote' as const };
 }
 
 export async function addBook(input: NewBookInput) {
   const client = getClient();
-  if (!client) {
+  if (!client || !supabaseReady()) {
     const newBook: Book = { ...input, id: `local-${Date.now()}`, progress: 0 };
     memoryStore.unshift(newBook);
     return { data: newBook, source: 'local' as const };
   }
 
-  const payload = { ...input, id: input.id ?? `book-${Date.now()}` };
-  const { data, error } = await client.from(table).insert(payload).select().single();
+  try {
+    const payload = { ...input, id: input.id ?? `book-${Date.now()}` };
+    const { data, error } = await client.from(table).insert(payload).select().single();
 
-  if (error || !data) {
-    throw new Error(error?.message ?? 'Could not add book');
+    if (error || !data) {
+      throw new Error(error?.message ?? 'Could not add book');
+    }
+
+    return { data: mapRow(data), source: 'remote' as const };
+  } catch (error: unknown) {
+    supabaseUnavailable = true;
+    console.warn('Failed to add book to Supabase, storing locally', (error as Error)?.message);
+    const newBook: Book = { ...input, id: `local-${Date.now()}`, progress: 0 };
+    memoryStore.unshift(newBook);
+    return { data: newBook, source: 'local' as const };
   }
-
-  return { data: mapRow(data), source: 'remote' as const };
 }
 
 export async function deleteBook(id: string) {
   const client = getClient();
-  if (!client) {
+  if (!client || !supabaseReady()) {
     const index = memoryStore.findIndex((b) => b.id === id);
     if (index >= 0) memoryStore.splice(index, 1);
     return { source: 'local' as const };
   }
 
-  const { error } = await client.from(table).delete().eq('id', id);
-  if (error) throw new Error(error.message);
-  return { source: 'remote' as const };
+  try {
+    const { error } = await client.from(table).delete().eq('id', id);
+    if (error) throw new Error(error.message);
+    return { source: 'remote' as const };
+  } catch (error: unknown) {
+    supabaseUnavailable = true;
+    console.warn('Failed to delete book in Supabase, removing locally', (error as Error)?.message);
+    const index = memoryStore.findIndex((b) => b.id === id);
+    if (index >= 0) memoryStore.splice(index, 1);
+    return { source: 'local' as const };
+  }
 }
 
 export async function uploadBookFile(fileUri: string, fileName: string) {
   const client = getClient();
   if (!client) throw new Error('Supabase is not configured.');
 
-  // Fetch the file as a blob; works in Expo RN & web.
-  const response = await fetch(fileUri);
-  const blob = await response.blob();
+  try {
+    // Fetch the file as a blob; works in Expo RN & web.
+    const response = await fetch(fileUri);
+    const blob = await response.blob();
 
-  const path = `${fileName}`;
-  const { error } = await client.storage.from('books').upload(path, blob, { upsert: true });
-  if (error) throw new Error(error.message);
+    const path = `${fileName}`;
+    const { error } = await client.storage.from('books').upload(path, blob, { upsert: true });
+    if (error) throw new Error(error.message);
 
-  const { data } = client.storage.from('books').getPublicUrl(path);
-  return data.publicUrl;
+    const { data } = client.storage.from('books').getPublicUrl(path);
+    return data.publicUrl;
+  } catch (error: unknown) {
+    console.warn('Failed to upload book file to Supabase', (error as Error)?.message);
+    throw error;
+  }
 }

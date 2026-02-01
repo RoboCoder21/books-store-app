@@ -8,17 +8,20 @@ import { useColorScheme } from '@/components/useColorScheme';
 import Colors from '@/constants/Colors';
 import { Book, catalog } from '@/constants/books';
 import { fetchBooks } from '@/lib/bookService';
+import { useI18n } from '@/lib/i18n';
 
-type Pillar = 'Fiction' | 'Nonfiction';
+type Pillar = 'Fiction' | 'Nonfiction' | 'Spiritual';
 
 const pillars: Record<Pillar, string[]> = {
   Fiction: ['All', 'Fantasy', 'Sci-Fi', 'Romance', 'Mystery', 'Horror', 'Literary', 'Historical', 'Thriller', 'Adventure'],
   Nonfiction: ['All', 'Biography', 'History', 'Self-Help', 'Cookbooks', 'Cooking', 'Science', 'True Crime', 'Business', 'Nonfiction'],
+  Spiritual: ['All', 'Spiritual', 'Christian', 'Islamic', 'Devotional', 'Interfaith', 'Faith'],
 };
 
 export default function BooksScreen() {
   const colorScheme = useColorScheme();
   const theme = Colors[colorScheme ?? 'light'];
+  const { t } = useI18n();
   const [books, setBooks] = useState<Book[]>(catalog);
   const [pillar, setPillar] = useState<Pillar>('Fiction');
   const [genre, setGenre] = useState<string>('All');
@@ -36,13 +39,22 @@ export default function BooksScreen() {
     setGenre('All');
   }, [pillar]);
 
+  const pillarLabel = (value: Pillar) => t(`pillar_${value.toLowerCase()}`);
+
   const filtered = useMemo(() => {
-    const categories = pillars[pillar].filter((c) => c !== 'All').map((c) => c.toLowerCase());
+    const normalizedCategories = pillars[pillar].filter((c) => c !== 'All').map((c) => c.toLowerCase());
 
     const belongsToPillar = (category: string) => {
-      const c = category.toLowerCase();
-      if (pillar === 'Fiction') return categories.includes(c) || c === 'fiction';
-      return categories.includes(c) || c === 'nonfiction' || c === 'business';
+      const c = category?.toLowerCase() ?? '';
+      if (pillar === 'Fiction') return normalizedCategories.includes(c) || c === 'fiction';
+      if (pillar === 'Nonfiction') return normalizedCategories.includes(c) || c === 'nonfiction' || c === 'business';
+      return (
+        normalizedCategories.includes(c) ||
+        c === 'spiritual' ||
+        c === 'spirituality' ||
+        c === 'christian' ||
+        c === 'islamic'
+      );
     };
 
     return books.filter((book) => {
@@ -67,9 +79,9 @@ export default function BooksScreen() {
       ]}
       showsVerticalScrollIndicator={false}>
       <View style={styles.header}>
-        <Text style={styles.eyebrow}>Books</Text>
-        <Text style={styles.title}>Browse by category</Text>
-        <Text style={styles.subtitle}>All titles are free to download and read offline.</Text>
+        <Text style={styles.eyebrow}>{t('booksTitle')}</Text>
+        <Text style={styles.title}>{t('browseByCategory')}</Text>
+        <Text style={styles.subtitle}>{t('allTitlesFree')}</Text>
       </View>
 
       <View style={styles.chipsRow}>
@@ -80,7 +92,7 @@ export default function BooksScreen() {
               key={item}
               onPress={() => setPillar(item)}
               style={[styles.pill, active && { backgroundColor: theme.tint }]}> 
-              <Text style={[styles.pillText, active && { color: '#ffffff' }]}>{item}</Text>
+              <Text style={[styles.pillText, active && { color: '#ffffff' }]}>{pillarLabel(item)}</Text>
             </Pressable>
           );
         })}
@@ -89,18 +101,19 @@ export default function BooksScreen() {
       <View style={styles.chipsRow}>
         {pillars[pillar].map((item) => {
           const active = genre === item;
+          const display = item === 'All' ? t('all') : item;
           return (
             <Pressable
               key={item}
               onPress={() => setGenre(item)}
               style={[styles.genrePill, { borderColor: theme.tint }, active && { backgroundColor: theme.tint }]}> 
-              <Text style={[styles.genreText, active && { color: '#ffffff' }]}>{item}</Text>
+              <Text style={[styles.genreText, active && { color: '#ffffff' }]}>{display}</Text>
             </Pressable>
           );
         })}
       </View>
 
-      <SectionHeading title={`${pillar} picks`} />
+      <SectionHeading title={`${pillarLabel(pillar)} ${t('picks')}`} />
       <FlatList
         data={filtered}
         keyExtractor={(item) => item.id}

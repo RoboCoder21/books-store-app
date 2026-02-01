@@ -2,17 +2,17 @@ import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { useRouter } from 'expo-router';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
-  Alert,
-  FlatList,
-  Image,
-  ImageBackground,
-  Pressable,
-  RefreshControl,
-  ScrollView,
-  StyleSheet,
-  TextInput,
-  View,
-  useWindowDimensions,
+    Alert,
+    FlatList,
+    Image,
+    ImageBackground,
+    Pressable,
+    RefreshControl,
+    ScrollView,
+    StyleSheet,
+    TextInput,
+    View,
+    useWindowDimensions,
 } from 'react-native';
 
 import { AudioMiniPlayer } from '@/components/AudioMiniPlayer';
@@ -24,6 +24,7 @@ import Colors from '@/constants/Colors';
 import { Book, catalog } from '@/constants/books';
 import { signOut } from '@/lib/authService';
 import { fetchBooks } from '@/lib/bookService';
+import { useI18n } from '@/lib/i18n';
 
 const sampleTrack = {
   title: 'Sample Audio Chapter',
@@ -43,6 +44,7 @@ export default function BrowseScreen() {
   const router = useRouter();
   const colorScheme = useColorScheme();
   const theme = Colors[colorScheme ?? 'light'];
+  const { t, language, toggleLanguage } = useI18n();
   const inputBackground = colorScheme === 'dark' ? '#0b1020' : '#ffffff';
   const inputBorder = colorScheme === 'dark' ? '#1f2937' : '#e2e8f0';
   const placeholder = colorScheme === 'dark' ? 'rgba(226,232,240,0.6)' : 'rgba(15,23,42,0.5)';
@@ -119,34 +121,42 @@ export default function BrowseScreen() {
       showsVerticalScrollIndicator={false}>
       <View style={styles.topBar}>
         <View>
-          <Text style={[styles.brand, { color: theme.text }]}>My Bookstore</Text>
+          <Text style={[styles.brand, { color: theme.text }]}>{t('brandTitle')}</Text>
           <Text
             style={[
               styles.brandSub,
               { color: colorScheme === 'dark' ? 'rgba(226,232,240,0.7)' : 'rgba(15,23,42,0.6)' },
             ]}>
-            Discover, listen, enjoy.
+            {t('brandSubtitle')}
           </Text>
         </View>
-        <Pressable
-          style={[styles.iconButton, { borderColor: inputBorder }]}
-          onPress={async () => {
-            const { error } = await signOut();
-            if (error) {
-              Alert.alert('Sign out failed', error);
-              return;
-            }
-            router.replace('/modal');
-          }}
-          accessibilityLabel="Sign out">
-          <FontAwesome name="sign-out" size={18} color={theme.text} />
-        </Pressable>
+        <View style={{ flexDirection: 'row', gap: 8 }}>
+          <Pressable
+            style={[styles.iconButton, { borderColor: inputBorder }]}
+            onPress={toggleLanguage}
+            accessibilityLabel="Toggle language">
+            <Text style={{ fontWeight: '800', color: theme.text }}>{language === 'am' ? 'አማ' : 'EN'}</Text>
+          </Pressable>
+          <Pressable
+            style={[styles.iconButton, { borderColor: inputBorder }]}
+            onPress={async () => {
+              const { error } = await signOut();
+              if (error) {
+                Alert.alert(t('signOut'), error);
+                return;
+              }
+              router.replace('/modal');
+            }}
+            accessibilityLabel={t('signOut')}>
+            <FontAwesome name="sign-out" size={18} color={theme.text} />
+          </Pressable>
+        </View>
       </View>
 
       <View style={[styles.searchBar, { backgroundColor: inputBackground, borderColor: inputBorder }]}> 
         <FontAwesome name="search" size={16} color={placeholder} />
         <TextInput
-          placeholder="Search books or authors"
+          placeholder={t('searchPlaceholder')}
           placeholderTextColor={placeholder}
           style={[styles.searchInput, { color: theme.text }]}
           value={query}
@@ -157,9 +167,9 @@ export default function BrowseScreen() {
 
       <View style={[styles.heroContainer, isTablet && styles.heroRow]}>
         <View style={[styles.heroContent, isTablet && { flex: 1 }]}> 
-          <Text style={styles.eyebrow}>Daily reading</Text>
-          <Text style={styles.headline}>A quick bookstore with audiobooks.</Text>
-          <Text style={styles.subhead}>New releases and curated shelves every week.</Text>
+          <Text style={styles.eyebrow}>{t('heroEyebrow')}</Text>
+          <Text style={styles.headline}>{t('heroHeadline')}</Text>
+          <Text style={styles.subhead}>{t('heroSubhead')}</Text>
           <View style={styles.heroActions}>
             <View style={styles.heroAvatarRow}>
               {[1, 2, 3].map((id) => (
@@ -167,14 +177,14 @@ export default function BrowseScreen() {
               ))}
             </View>
             <View style={styles.heroCta}>
-              <Text style={styles.heroCtaText}>Browse now</Text>
+              <Text style={styles.heroCtaText}>{t('heroCta')}</Text>
             </View>
           </View>
         </View>
       </View>
 
       <View style={styles.section}>
-        <SectionHeading title="New arrivals" actionLabel="See all" />
+        <SectionHeading title={t('newArrivals')} actionLabel={t('seeAll')} />
         <FlatList
           horizontal
           data={newArrivals}
@@ -203,12 +213,12 @@ export default function BrowseScreen() {
       </View>
 
       <View style={styles.section}>
-        <SectionHeading title="Audiobooks" actionLabel="Listen" />
+        <SectionHeading title={t('audiobooks')} actionLabel={t('listen')} />
         <AudioMiniPlayer track={topAudio} />
       </View>
 
       <View style={styles.section}>
-        <SectionHeading title="Trending books" actionLabel="View all" />
+        <SectionHeading title={t('trending')} actionLabel={t('viewAll')} />
         <FlatList
           data={trending}
           keyExtractor={(item) => item.id}
@@ -224,7 +234,7 @@ export default function BrowseScreen() {
       </View>
 
       <View style={styles.section}>
-        <SectionHeading title="Popular authors" />
+        <SectionHeading title={t('popularAuthors')} />
         <FlatList
           data={popularAuthors}
           horizontal
@@ -251,7 +261,7 @@ export default function BrowseScreen() {
       </View>
 
       <View style={styles.section}>
-        <SectionHeading title="All books" />
+        <SectionHeading title={t('allBooks')} />
         <FlatList
           data={filtered}
           keyExtractor={(item) => item.id}

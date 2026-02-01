@@ -1,7 +1,8 @@
+
 {
   "expo": {
-    "name": "books-store-app",
-    "slug": "books-store-app",
+    "name": "Addis Reads",
+    "slug": "addis-reads",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
@@ -31,7 +32,17 @@
       "favicon": "./assets/images/favicon.png"
     },
     "plugins": [
-      "expo-router"
+      "expo-router",
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "extraGradleProperties": {
+              "android.enablePrefab": "true"
+            }
+          }
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true
